@@ -1,0 +1,79 @@
+# philiprehberger-lru
+
+[![Tests](https://github.com/philiprehberger/rb-lru/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-lru/actions/workflows/ci.yml)
+[![Gem Version](https://badge.fury.io/rb/philiprehberger-lru.svg)](https://rubygems.org/gems/philiprehberger-lru)
+[![License](https://img.shields.io/github/license/philiprehberger/rb-lru)](LICENSE)
+
+Thread-safe LRU cache with TTL, eviction callbacks, and hit/miss statistics
+
+## Requirements
+
+- Ruby >= 3.1
+
+## Installation
+
+Add to your Gemfile:
+
+```ruby
+gem "philiprehberger-lru"
+```
+
+Or install directly:
+
+```bash
+gem install philiprehberger-lru
+```
+
+## Usage
+
+```ruby
+require "philiprehberger/lru"
+
+cache = Philiprehberger::Lru::Cache.new(max_size: 100, ttl: 300)
+cache.set(:user, { name: 'Alice' })
+cache.get(:user) # => { name: 'Alice' }
+```
+
+### Fetch with Block
+
+```ruby
+cache.fetch(:config) { load_config_from_disk }
+```
+
+### Eviction Callbacks
+
+```ruby
+cache.on_evict { |key, value| logger.info("Evicted #{key}") }
+```
+
+### Statistics
+
+```ruby
+cache.stats # => { hits: 42, misses: 3, evictions: 1, size: 97 }
+```
+
+## API
+
+| Method | Description |
+|--------|-------------|
+| `.new(max_size:, ttl:)` | Create a new LRU cache |
+| `#set(key, value)` | Store a key-value pair |
+| `#get(key)` | Retrieve a value by key |
+| `#fetch(key) { block }` | Get or compute and store a value |
+| `#delete(key)` | Remove a key from the cache |
+| `#clear` | Remove all entries |
+| `#on_evict { \|k, v\| }` | Register an eviction callback |
+| `#stats` | Return hits, misses, evictions, and size |
+| `#size` | Return the current number of entries |
+
+## Development
+
+```bash
+bundle install
+bundle exec rspec
+bundle exec rubocop
+```
+
+## License
+
+MIT
