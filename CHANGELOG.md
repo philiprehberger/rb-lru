@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-03-22
+
+### Changed
+
+- Expand test coverage to 30+ examples covering access order recency, LRU eviction order, delete/clear behavior, on_evict callback details, fetch edge cases, stats tracking, size tracking, and validation edge cases
+
 ## [0.1.0] - 2026-03-22
 
 ### Added
