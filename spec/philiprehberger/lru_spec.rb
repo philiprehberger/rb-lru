@@ -292,7 +292,10 @@ RSpec.describe Philiprehberger::Lru::Cache do
       cache = described_class.new(max_size: 10)
       cache.set(:key, 'cached')
       block_called = false
-      cache.fetch(:key) { block_called = true; 'new' }
+      cache.fetch(:key) do
+        block_called = true
+        'new'
+      end
       expect(block_called).to be false
     end
 

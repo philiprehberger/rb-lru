@@ -191,16 +191,12 @@ module Philiprehberger
       # Return the configured maximum size
       #
       # @return [Integer]
-      def max_size
-        @max_size
-      end
+      attr_reader :max_size
 
       # Return the configured TTL in seconds
       #
       # @return [Numeric, nil]
-      def ttl
-        @ttl
-      end
+      attr_reader :ttl
 
       # Return all keys in the cache (most recently used first)
       #
