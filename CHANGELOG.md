@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-03
+
+### Added
+- Batch operations: `set_many`, `get_many`, `delete_many`
+- Hit rate and miss rate convenience methods
+- `reset_stats` to clear counters
+
 ## [0.1.4] - 2026-03-31
 
 ### Added

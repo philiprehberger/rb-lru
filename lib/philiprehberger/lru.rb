@@ -172,6 +172,66 @@ module Philiprehberger
         end
       end
 
+      # Bulk insert from a hash
+      #
+      # @param hash [Hash] key-value pairs to store
+      # @return [void]
+      def set_many(hash)
+        hash.each { |k, v| set(k, v) }
+        nil
+      end
+
+      # Retrieve multiple values by key
+      #
+      # @param keys [Array<Object>] the cache keys
+      # @return [Hash] key => value for each key (nil for misses)
+      def get_many(*keys)
+        keys.flatten.to_h { |k| [k, get(k)] }
+      end
+
+      # Bulk delete keys from the cache
+      #
+      # @param keys [Array<Object>] the cache keys to delete
+      # @return [Integer] number of keys actually deleted
+      def delete_many(*keys)
+        keys.flatten.count { |k| !delete(k).nil? }
+      end
+
+      # Return the hit rate as a float between 0.0 and 1.0
+      #
+      # @return [Float]
+      def hit_rate
+        @mutex.synchronize do
+          total = @hits + @misses
+          return 0.0 if total.zero?
+
+          @hits.to_f / total
+        end
+      end
+
+      # Return the miss rate as a float between 0.0 and 1.0
+      #
+      # @return [Float]
+      def miss_rate
+        @mutex.synchronize do
+          total = @hits + @misses
+          return 0.0 if total.zero?
+
+          @misses.to_f / total
+        end
+      end
+
+      # Reset hit, miss, and eviction counters to zero
+      #
+      # @return [void]
+      def reset_stats
+        @mutex.synchronize do
+          @hits = 0
+          @misses = 0
+          @evictions = 0
+        end
+      end
+
       # Return cache statistics
       #
       # @return [Hash] hits, misses, evictions, and current size

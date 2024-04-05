@@ -46,10 +46,21 @@ cache.fetch(:config) { load_config_from_disk }
 cache.on_evict { |key, value| logger.info("Evicted #{key}") }
 ```
 
+### Batch Operations
+
+```ruby
+cache.set_many(user: 'Alice', role: 'admin', theme: 'dark')
+cache.get_many(:user, :role, :missing) # => { user: 'Alice', role: 'admin', missing: nil }
+cache.delete_many(:role, :theme)       # => 2
+```
+
 ### Statistics
 
 ```ruby
-cache.stats # => { hits: 42, misses: 3, evictions: 1, size: 97 }
+cache.stats     # => { hits: 42, misses: 3, evictions: 1, size: 97 }
+cache.hit_rate  # => 0.933
+cache.miss_rate # => 0.067
+cache.reset_stats
 ```
 
 ## API
@@ -63,7 +74,13 @@ cache.stats # => { hits: 42, misses: 3, evictions: 1, size: 97 }
 | `#delete(key)` | Remove a key from the cache |
 | `#clear` | Remove all entries |
 | `#on_evict { \|k, v\| }` | Register an eviction callback |
+| `#set_many(hash)` | Bulk insert from a hash |
+| `#get_many(*keys)` | Retrieve multiple values; returns hash with nil for misses |
+| `#delete_many(*keys)` | Bulk delete; returns count of deleted keys |
 | `#stats` | Return hits, misses, evictions, and size |
+| `#hit_rate` | Hit count as fraction of total accesses (0.0..1.0) |
+| `#miss_rate` | Miss count as fraction of total accesses (0.0..1.0) |
+| `#reset_stats` | Reset hit, miss, and eviction counters to zero |
 | `#size` | Return the current number of entries |
 | `#max_size` | Return the configured maximum size |
 | `#ttl` | Return the configured TTL in seconds |

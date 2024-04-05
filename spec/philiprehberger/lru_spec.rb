@@ -330,6 +330,148 @@ RSpec.describe Philiprehberger::Lru::Cache do
     end
   end
 
+  describe '#set_many' do
+    it 'inserts all key-value pairs from a hash' do
+      cache = described_class.new(max_size: 10)
+      cache.set_many(a: 1, b: 2, c: 3)
+      expect(cache.get(:a)).to eq(1)
+      expect(cache.get(:b)).to eq(2)
+      expect(cache.get(:c)).to eq(3)
+      expect(cache.size).to eq(3)
+    end
+
+    it 'triggers LRU eviction when exceeding max_size' do
+      cache = described_class.new(max_size: 2)
+      cache.set_many(a: 1, b: 2, c: 3)
+      expect(cache.get(:a)).to be_nil
+      expect(cache.size).to eq(2)
+    end
+
+    it 'overwrites existing keys' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 'old')
+      cache.set_many(a: 'new', b: 2)
+      expect(cache.get(:a)).to eq('new')
+    end
+
+    it 'handles an empty hash' do
+      cache = described_class.new(max_size: 10)
+      cache.set_many({})
+      expect(cache.size).to eq(0)
+    end
+  end
+
+  describe '#get_many' do
+    it 'returns a hash of found values' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      result = cache.get_many(:a, :b)
+      expect(result).to eq(a: 1, b: 2)
+    end
+
+    it 'returns nil for missing keys' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 1)
+      result = cache.get_many(:a, :missing)
+      expect(result).to eq(a: 1, missing: nil)
+    end
+
+    it 'tracks hits and misses correctly' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 1)
+      cache.get_many(:a, :missing)
+      expect(cache.stats[:hits]).to eq(1)
+      expect(cache.stats[:misses]).to eq(1)
+    end
+
+    it 'handles empty arguments' do
+      cache = described_class.new(max_size: 10)
+      expect(cache.get_many).to eq({})
+    end
+  end
+
+  describe '#delete_many' do
+    it 'deletes multiple existing keys and returns count' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.set(:c, 3)
+      expect(cache.delete_many(:a, :c)).to eq(2)
+      expect(cache.size).to eq(1)
+      expect(cache.get(:b)).to eq(2)
+    end
+
+    it 'returns 0 for non-existing keys' do
+      cache = described_class.new(max_size: 10)
+      expect(cache.delete_many(:x, :y)).to eq(0)
+    end
+
+    it 'counts only actually deleted keys in mixed case' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 1)
+      expect(cache.delete_many(:a, :missing)).to eq(1)
+    end
+
+    it 'handles empty arguments' do
+      cache = described_class.new(max_size: 10)
+      expect(cache.delete_many).to eq(0)
+    end
+  end
+
+  describe '#hit_rate' do
+    it 'returns the fraction of hits over total accesses' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 1)
+      cache.get(:a)       # hit
+      cache.get(:a)       # hit
+      cache.get(:missing) # miss
+      expect(cache.hit_rate).to be_within(0.001).of(2.0 / 3)
+    end
+
+    it 'returns 0.0 when there are no accesses' do
+      cache = described_class.new(max_size: 10)
+      expect(cache.hit_rate).to eq(0.0)
+    end
+  end
+
+  describe '#miss_rate' do
+    it 'returns the fraction of misses over total accesses' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 1)
+      cache.get(:a)       # hit
+      cache.get(:missing) # miss
+      cache.get(:nope)    # miss
+      expect(cache.miss_rate).to be_within(0.001).of(2.0 / 3)
+    end
+
+    it 'returns 0.0 when there are no accesses' do
+      cache = described_class.new(max_size: 10)
+      expect(cache.miss_rate).to eq(0.0)
+    end
+  end
+
+  describe '#reset_stats' do
+    it 'clears hit, miss, and eviction counters' do
+      cache = described_class.new(max_size: 2)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.set(:c, 3) # evicts :a
+      cache.get(:b)     # hit
+      cache.get(:z)     # miss
+      cache.reset_stats
+      expect(cache.stats).to eq(hits: 0, misses: 0, evictions: 0, size: 2)
+    end
+
+    it 'does not clear cached data' do
+      cache = described_class.new(max_size: 10)
+      cache.set(:a, 1)
+      cache.get(:a)
+      cache.reset_stats
+      expect(cache.get(:a)).to eq(1)
+    end
+  end
+
   describe '#size' do
     it 'reflects current entry count' do
       cache = described_class.new(max_size: 10)
