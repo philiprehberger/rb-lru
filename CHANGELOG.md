@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-09
+
+### Added
+- `Cache#peek(key)` reads a value without promoting it in the LRU order or affecting statistics
+- `Cache#resize(new_max)` changes capacity at runtime, evicting LRU entries if needed
+
 ## [0.2.0] - 2026-04-03
 
 ### Added
