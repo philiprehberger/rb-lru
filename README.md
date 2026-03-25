@@ -65,6 +65,12 @@ cache.stats # => { hits: 42, misses: 3, evictions: 1, size: 97 }
 | `#on_evict { \|k, v\| }` | Register an eviction callback |
 | `#stats` | Return hits, misses, evictions, and size |
 | `#size` | Return the current number of entries |
+| `#max_size` | Return the configured maximum size |
+| `#ttl` | Return the configured TTL in seconds |
+| `#keys` | Return all keys, most recently used first |
+| `#values` | Return all values, most recently used first |
+| `#include?(key)` | Check whether a key exists and is not expired |
+| `#empty?` | Check whether the cache is empty |
 
 ## Development
 

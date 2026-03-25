@@ -188,6 +188,73 @@ module Philiprehberger
         @mutex.synchronize { @map.size }
       end
 
+      # Return the configured maximum size
+      #
+      # @return [Integer]
+      def max_size
+        @max_size
+      end
+
+      # Return the configured TTL in seconds
+      #
+      # @return [Numeric, nil]
+      def ttl
+        @ttl
+      end
+
+      # Return all keys in the cache (most recently used first)
+      #
+      # @return [Array]
+      def keys
+        @mutex.synchronize do
+          result = []
+          node = @head
+          while node
+            result << node.key unless node.expired?
+            node = node.next_node
+          end
+          result
+        end
+      end
+
+      # Return all values in the cache (most recently used first)
+      #
+      # @return [Array]
+      def values
+        @mutex.synchronize do
+          result = []
+          node = @head
+          while node
+            result << node.value unless node.expired?
+            node = node.next_node
+          end
+          result
+        end
+      end
+
+      # Check whether a key exists in the cache and is not expired
+      #
+      # @param key [Object] the cache key
+      # @return [Boolean]
+      def include?(key)
+        @mutex.synchronize do
+          node = @map[key]
+          return false if node.nil?
+          return false if node.expired?
+
+          true
+        end
+      end
+
+      alias key? include?
+
+      # Check whether the cache is empty
+      #
+      # @return [Boolean]
+      def empty?
+        @mutex.synchronize { @map.empty? }
+      end
+
       private
 
       def prepend_node(node)
