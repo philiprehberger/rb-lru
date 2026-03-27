@@ -3,6 +3,7 @@
 [![Tests](https://github.com/philiprehberger/rb-lru/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-lru/actions/workflows/ci.yml)
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-lru.svg)](https://rubygems.org/gems/philiprehberger-lru)
 [![License](https://img.shields.io/github/license/philiprehberger/rb-lru)](LICENSE)
+[![Sponsor](https://img.shields.io/badge/sponsor-GitHub%20Sponsors-ec6cb9)](https://github.com/sponsors/philiprehberger)
 
 Thread-safe LRU cache with TTL, eviction callbacks, and hit/miss statistics
 
