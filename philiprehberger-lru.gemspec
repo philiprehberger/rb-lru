@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Thread-safe LRU cache with TTL, eviction callbacks, and hit/miss statistics'
   spec.description = 'Thread-safe LRU cache backed by a hash and doubly-linked list for O(1) get/set, ' \
-                       'with configurable TTL expiration, eviction callbacks, and hit/miss statistics.'
+                     'with configurable TTL expiration, eviction callbacks, and hit/miss statistics.'
   spec.homepage = 'https://philiprehberger.com/open-source-packages/ruby/philiprehberger-lru'
   spec.license = 'MIT'
 
