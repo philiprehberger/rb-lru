@@ -304,6 +304,36 @@ module Philiprehberger
 
       alias key? include?
 
+      # Read a value without promoting the key in the LRU order.
+      # Does not affect hit/miss statistics.
+      #
+      # @param key [Object] the cache key
+      # @return [Object, nil] the cached value or nil if not found/expired
+      def peek(key)
+        @mutex.synchronize do
+          node = @map[key]
+          return nil if node.nil? || node.expired?
+
+          node.value
+        end
+      end
+
+      # Change the maximum capacity at runtime.
+      # If the new size is smaller than the current number of entries,
+      # least-recently-used entries are evicted until the cache fits.
+      #
+      # @param new_max [Integer] the new maximum size
+      # @return [void]
+      # @raise [Error] if new_max is not a positive integer
+      def resize(new_max)
+        raise Error, 'max_size must be a positive integer' unless new_max.is_a?(Integer) && new_max.positive?
+
+        @mutex.synchronize do
+          @max_size = new_max
+          evict_one while @map.size > @max_size
+        end
+      end
+
       # Check whether the cache is empty
       #
       # @return [Boolean]

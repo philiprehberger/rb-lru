@@ -484,4 +484,80 @@ RSpec.describe Philiprehberger::Lru::Cache do
       expect(cache.size).to eq(1)
     end
   end
+
+  describe '#peek' do
+    it 'returns the value without promoting the key' do
+      cache = described_class.new(max_size: 3)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.set(:c, 3)
+
+      expect(cache.peek(:a)).to eq(1)
+      # :a should still be least-recently-used; adding :d should evict :a
+      cache.set(:d, 4)
+      expect(cache.get(:a)).to be_nil
+    end
+
+    it 'returns nil for missing keys' do
+      cache = described_class.new(max_size: 3)
+      expect(cache.peek(:missing)).to be_nil
+    end
+
+    it 'returns nil for expired keys' do
+      cache = described_class.new(max_size: 3, ttl: 0.05)
+      cache.set(:x, 1)
+      sleep 0.1
+      expect(cache.peek(:x)).to be_nil
+    end
+
+    it 'does not affect hit/miss stats' do
+      cache = described_class.new(max_size: 3)
+      cache.set(:a, 1)
+      cache.peek(:a)
+      cache.peek(:missing)
+      expect(cache.stats[:hits]).to eq(0)
+      expect(cache.stats[:misses]).to eq(0)
+    end
+  end
+
+  describe '#resize' do
+    it 'shrinks the cache and evicts LRU entries' do
+      cache = described_class.new(max_size: 5)
+      (1..5).each { |i| cache.set(i, i) }
+      cache.resize(3)
+      expect(cache.size).to eq(3)
+      expect(cache.max_size).to eq(3)
+      # LRU entries 1 and 2 should have been evicted
+      expect(cache.get(1)).to be_nil
+      expect(cache.get(2)).to be_nil
+      expect(cache.get(3)).to eq(3)
+    end
+
+    it 'grows the cache allowing more entries' do
+      cache = described_class.new(max_size: 2)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.resize(4)
+      cache.set(:c, 3)
+      cache.set(:d, 4)
+      expect(cache.size).to eq(4)
+    end
+
+    it 'triggers eviction callbacks on resize' do
+      evicted = []
+      cache = described_class.new(max_size: 3)
+      cache.on_evict { |k, v| evicted << [k, v] }
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.set(:c, 3)
+      cache.resize(1)
+      expect(evicted.size).to eq(2)
+    end
+
+    it 'raises on invalid new_max' do
+      cache = described_class.new(max_size: 3)
+      expect { cache.resize(0) }.to raise_error(Philiprehberger::Lru::Error)
+      expect { cache.resize(-1) }.to raise_error(Philiprehberger::Lru::Error)
+    end
+  end
 end

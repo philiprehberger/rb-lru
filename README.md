@@ -54,6 +54,21 @@ cache.get_many(:user, :role, :missing) # => { user: 'Alice', role: 'admin', miss
 cache.delete_many(:role, :theme)       # => 2
 ```
 
+### Peek Without Promotion
+
+```ruby
+cache.set(:a, 1)
+cache.set(:b, 2)
+cache.peek(:a)  # => 1, does not change LRU order or stats
+```
+
+### Dynamic Resize
+
+```ruby
+cache = Philiprehberger::Lru::Cache.new(max_size: 100)
+cache.resize(50)  # evicts 50 least-recently-used entries if cache is full
+```
+
 ### Statistics
 
 ```ruby
@@ -87,6 +102,8 @@ cache.reset_stats
 | `#keys` | Return all keys, most recently used first |
 | `#values` | Return all values, most recently used first |
 | `#include?(key)` | Check whether a key exists and is not expired |
+| `#peek(key)` | Read value without promoting in LRU order or affecting stats |
+| `#resize(new_max)` | Change capacity at runtime, evicting excess entries |
 | `#empty?` | Check whether the cache is empty |
 
 ## Development
