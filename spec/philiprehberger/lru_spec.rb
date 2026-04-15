@@ -560,4 +560,38 @@ RSpec.describe Philiprehberger::Lru::Cache do
       expect { cache.resize(-1) }.to raise_error(Philiprehberger::Lru::Error)
     end
   end
+
+  describe '#each' do
+    it 'yields entries in MRU order' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 3)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.set(:c, 3)
+      pairs = cache.map { |k, v| [k, v] }
+      expect(pairs).to eq([[:c, 3], [:b, 2], [:a, 1]])
+    end
+
+    it 'returns an Enumerator when no block is given' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 2)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      expect(cache.each).to be_a(Enumerator)
+    end
+
+    it 'integrates with Enumerable' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 3)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      expect(cache.map { |_, v| v }).to contain_exactly(1, 2)
+    end
+
+    it 'skips expired entries' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 3, ttl: 0.05)
+      cache.set(:a, 1)
+      sleep 0.1
+      cache.set(:b, 2)
+      pairs = cache.each.to_a
+      expect(pairs).to eq([[:b, 2]])
+    end
+  end
 end

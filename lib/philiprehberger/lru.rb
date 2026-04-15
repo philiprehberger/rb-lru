@@ -34,6 +34,8 @@ module Philiprehberger
     #   cache.set(:user, { name: 'Alice' })
     #   cache.get(:user) # => { name: 'Alice' }
     class Cache
+      include Enumerable
+
       # Create a new LRU cache
       #
       # @param max_size [Integer] maximum number of entries
@@ -339,6 +341,28 @@ module Philiprehberger
       # @return [Boolean]
       def empty?
         @mutex.synchronize { @map.empty? }
+      end
+
+      # Iterate over non-expired entries in MRU order.
+      # Yields `[key, value]` pairs. Returns an Enumerator when called without a block.
+      #
+      # @yield [key, value]
+      # @return [Enumerator] when no block is given
+      def each(&block)
+        return enum_for(:each) unless block
+
+        snapshot = @mutex.synchronize do
+          result = []
+          node = @head
+          while node
+            result << [node.key, node.value] unless node.expired?
+            node = node.next_node
+          end
+          result
+        end
+
+        snapshot.each(&block)
+        self
       end
 
       private

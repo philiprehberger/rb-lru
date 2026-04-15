@@ -69,6 +69,16 @@ cache = Philiprehberger::Lru::Cache.new(max_size: 100)
 cache.resize(50)  # evicts 50 least-recently-used entries if cache is full
 ```
 
+### Iteration
+
+`Cache` includes `Enumerable`, so you can iterate MRU-first:
+
+```ruby
+cache.each { |k, v| puts "#{k} = #{v}" }
+cache.to_a              # => [[k1, v1], [k2, v2], ...]
+cache.map { |_, v| v }  # => [v1, v2, ...]
+```
+
 ### Statistics
 
 ```ruby
@@ -102,6 +112,7 @@ cache.reset_stats
 | `#keys` | Return all keys, most recently used first |
 | `#values` | Return all values, most recently used first |
 | `#include?(key)` | Check whether a key exists and is not expired |
+| `#each { \|k, v\| }` | Iterate non-expired entries in MRU order; `Enumerable` is included |
 | `#peek(key)` | Read value without promoting in LRU order or affecting stats |
 | `#resize(new_max)` | Change capacity at runtime, evicting excess entries |
 | `#empty?` | Check whether the cache is empty |
