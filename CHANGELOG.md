@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-15
+
+### Added
+- `Cache#each` — iterate non-expired entries in MRU order (Enumerable is now included)
+
 ## [0.3.0] - 2026-04-09
 
 ### Added
