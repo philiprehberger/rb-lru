@@ -594,4 +594,52 @@ RSpec.describe Philiprehberger::Lru::Cache do
       expect(pairs).to eq([[:b, 2]])
     end
   end
+
+  describe '#oldest_key / #newest_key' do
+    it 'returns nil for an empty cache' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 3)
+      expect(cache.oldest_key).to be_nil
+      expect(cache.newest_key).to be_nil
+    end
+
+    it 'reports MRU/LRU after a sequence of sets' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 3)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.set(:c, 3)
+      expect(cache.newest_key).to eq(:c)
+      expect(cache.oldest_key).to eq(:a)
+    end
+
+    it 'updates LRU/MRU when get promotes a key' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 3)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.set(:c, 3)
+
+      cache.get(:a)
+      expect(cache.newest_key).to eq(:a)
+      expect(cache.oldest_key).to eq(:b)
+    end
+
+    it 'does not promote LRU order when called' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 3)
+      cache.set(:a, 1)
+      cache.set(:b, 2)
+      cache.oldest_key
+      cache.newest_key
+      cache.set(:c, 3)
+      cache.set(:d, 4) # evicts the LRU
+      expect(cache.include?(:a)).to be false
+    end
+
+    it 'skips expired tail nodes' do
+      cache = Philiprehberger::Lru::Cache.new(max_size: 3, ttl: 0.05)
+      cache.set(:expired, 1)
+      sleep 0.1
+      cache.set(:fresh, 2)
+      expect(cache.oldest_key).to eq(:fresh)
+      expect(cache.newest_key).to eq(:fresh)
+    end
+  end
 end

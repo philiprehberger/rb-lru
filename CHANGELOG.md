@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-01
+
+### Added
+- `Cache#oldest_key` — key at the LRU end (the next entry to be evicted); does NOT promote LRU order
+- `Cache#newest_key` — key at the MRU end (the most recently set or accessed entry); does NOT promote LRU order
+- Both accessors skip expired tail/head nodes without removing them, making them safe for diagnostics and metrics
+
 ## [0.4.0] - 2026-04-15
 
 ### Added

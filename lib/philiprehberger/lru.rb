@@ -320,6 +320,34 @@ module Philiprehberger
         end
       end
 
+      # Key at the LRU end — the next entry to be evicted.
+      #
+      # Walks past expired tail nodes (without removing them) and returns
+      # the first non-expired key found. Does NOT touch LRU ordering.
+      #
+      # @return [Object, nil] the LRU key, or nil if the cache is empty
+      def oldest_key
+        @mutex.synchronize do
+          node = @tail
+          node = node.prev_node while node&.expired?
+          node&.key
+        end
+      end
+
+      # Key at the MRU end — the most recently set or accessed entry.
+      #
+      # Walks past expired head nodes (without removing them) and returns
+      # the first non-expired key found. Does NOT touch LRU ordering.
+      #
+      # @return [Object, nil] the MRU key, or nil if the cache is empty
+      def newest_key
+        @mutex.synchronize do
+          node = @head
+          node = node.next_node while node&.expired?
+          node&.key
+        end
+      end
+
       # Change the maximum capacity at runtime.
       # If the new size is smaller than the current number of entries,
       # least-recently-used entries are evicted until the cache fits.

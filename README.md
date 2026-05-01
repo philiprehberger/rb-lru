@@ -62,6 +62,18 @@ cache.set(:b, 2)
 cache.peek(:a)  # => 1, does not change LRU order or stats
 ```
 
+### Inspect LRU/MRU Ends
+
+```ruby
+cache = Philiprehberger::Lru::Cache.new(max_size: 3)
+cache.set(:a, 1); cache.set(:b, 2); cache.set(:c, 3)
+
+cache.newest_key  # => :c (most recently set)
+cache.oldest_key  # => :a (next to be evicted)
+```
+
+These accessors do NOT touch LRU ordering — safe for diagnostics, metrics, and dashboard rendering.
+
 ### Dynamic Resize
 
 ```ruby
@@ -114,6 +126,8 @@ cache.reset_stats
 | `#include?(key)` | Check whether a key exists and is not expired |
 | `#each { \|k, v\| }` | Iterate non-expired entries in MRU order; `Enumerable` is included |
 | `#peek(key)` | Read value without promoting in LRU order or affecting stats |
+| `#oldest_key` | Key at the LRU end (next to be evicted); does NOT promote |
+| `#newest_key` | Key at the MRU end (most recently set/accessed); does NOT promote |
 | `#resize(new_max)` | Change capacity at runtime, evicting excess entries |
 | `#empty?` | Check whether the cache is empty |
 
